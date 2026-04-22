@@ -1,0 +1,91 @@
+# 🔒 Archivos NO subidos a GitHub
+
+# ===== ENTORNO VIRTUAL =====
+venv/
+env/
+ENV/
+.venv
+*.egg-info/
+dist/
+build/
+
+# ===== PYTHON =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+*.cover
+.tox/
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# ===== DEPENDENCIAS Y MODELOS =====
+# Estos archivos son MUY grandes y se descargan automáticamente
+models/
+*.pth
+*.pt
+*.bin
+*.safetensors
+cache/
+.cache/
+
+# ===== CONFIGURACIÓN SENSIBLE =====
+.env
+.env.local
+*.secret
+config/secrets.json
+credentials.json
+gemini_key.txt
+api_keys/
+
+# ===== DATOS Y UPLOADS =====
+uploads/
+*.jpg
+*.jpeg
+*.png
+*.webp
+*.gif
+*.bmp
+demo_images/
+test_images/
+
+# ===== DATOS GENERADOS =====
+memory/
+*.db
+*.sqlite
+*.log
+*.tmp
+temp/
+
+# ===== SISTEMA OPERATIVO =====
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# ===== EDITOR ESPECÍFICOS =====
+*.sublime-workspace
+*.code-workspace
+.vscode/settings.json
+.editorconfig
+
+# ===== EXCEPCIONES (SUBE ESTOS ARCHIVOS) =====
+!.gitignore
+!.env.example
+!README.md
+!requirements.txt

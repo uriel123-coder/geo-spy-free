@@ -1,0 +1,11 @@
+torch
+transformers
+pillow
+flask
+numpy
+requests
+geoclip
+pytesseract
+scipy
+opencv-python
+overpy
