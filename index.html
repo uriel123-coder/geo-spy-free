@@ -1,692 +1,722 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoFinder Pro</title>
+    <title>GeoSpy Pro - Inteligencia Visual</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
+        :root {
+            --bg-base: #000000;
+            --surface-1: #0a0a0a;
+            --surface-2: #141414;
+            --border: #262626;
+            --border-hover: #404040;
+            --text-main: #ededed;
+            --text-muted: #a1a1aa;
+            --accent: #ffffff;
+            --system-green: #10b981;
+            --font-ui: 'Geist', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        :root {
-            --primary: #007bff;
-            --dark-bg: #0f0f0f;
-            --dark-surface: #1a1a1a;
-            --dark-border: #2a2a2a;
-            --light-text: #e0e0e0;
-            --muted-text: #a0a0a0;
-            --success: #10b981;
-            --danger: #ef4444;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--dark-bg);
-            color: var(--light-text);
-            overflow: hidden;
-        }
-
-        /* Layout Principal */
-        #app {
+            font-family: var(--font-ui);
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
             display: flex;
-            height: 100vh;
+            flex-direction: column;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Panel Izquierdo - Upload */
-        .upload-panel {
-            width: 45%;
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-base);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .logo svg {
+            color: var(--accent);
+        }
+
+        .pro-badge {
+            background: var(--accent);
+            color: var(--bg-base);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .workspace {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 4rem 2rem;
-            background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
-            border-right: 1px solid var(--dark-border);
-            opacity: 1;
-            transition: all 0.4s ease;
-            z-index: 10;
+            flex-grow: 1;
+            width: 100%;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .upload-panel.hidden {
-            opacity: 0;
-            width: 0;
-            padding: 0;
-            border: none;
-            overflow: hidden;
-        }
-
-        .branding {
+        .title-group {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 2.5rem;
         }
 
-        .logo-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .branding h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--light-text);
+        .title-group h1 {
+            font-size: 2.8rem;
+            font-weight: 500;
+            letter-spacing: -1px;
             margin-bottom: 0.5rem;
         }
 
-        .branding p {
-            color: var(--muted-text);
-            font-size: 0.95rem;
+        .title-group p {
+            color: var(--text-muted);
+            font-size: 1rem;
         }
 
-        /* Upload Area */
-        .drop-zone {
+        .upload-area {
             width: 100%;
-            max-width: 400px;
-            height: 300px;
-            border: 2px dashed var(--dark-border);
+            max-width: 720px;
+            height: 420px;
+            border: 1px solid var(--border);
             border-radius: 12px;
+            background: var(--surface-1);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s ease;
-            background: rgba(7, 123, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s, background 0.2s;
         }
 
-        .drop-zone:hover,
-        .drop-zone.drag-over {
-            border-color: var(--primary);
-            background: rgba(7, 123, 255, 0.1);
-            transform: scale(1.02);
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--border-hover);
+            background: var(--surface-2);
         }
 
-        .drop-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.6;
+        .upload-icon {
+            margin-bottom: 1.5rem;
+            color: var(--text-muted);
         }
 
-        .drop-text {
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-
-        .drop-text h3 {
-            font-size: 1.1rem;
-            margin-bottom: 0.3rem;
-            color: var(--light-text);
-        }
-
-        .drop-text p {
-            font-size: 0.9rem;
-            color: var(--muted-text);
-        }
-
-        .btn-select {
-            background: var(--primary);
-            color: white;
+        .btn-upload {
+            background: var(--accent);
+            color: var(--bg-base);
             border: none;
             padding: 10px 24px;
             border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 500;
             cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s;
+            font-family: var(--font-ui);
+            margin-bottom: 1rem;
+            transition: opacity 0.2s;
         }
 
-        .btn-select:hover {
-            background: #0056b3;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(7, 123, 255, 0.3);
+        .btn-upload:hover {
+            opacity: 0.92;
         }
 
-        #fileInput {
+        .upload-hints {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .preview-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
             display: none;
+            z-index: 5;
         }
 
-        /* Loading State */
-        .loading-state {
-            display: none;
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 10;
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            width: 100%;
-        }
-
-        .loading-state.active {
-            display: flex;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid var(--dark-border);
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 1.5rem;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .loading-text {
-            color: var(--light-text);
-            font-size: 0.95rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .loading-note {
-            color: var(--muted-text);
-            font-size: 0.85rem;
-        }
-
-        /* Panel Derecho - Resultados */
-        .results-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
             opacity: 0;
             pointer-events: none;
-            transition: all 0.4s ease;
+            transition: opacity 0.3s;
         }
 
-        .results-panel.active {
+        .scanner-overlay.active {
             opacity: 1;
             pointer-events: auto;
         }
 
-        /* Map Container */
-        #map {
-            flex: 1;
-            background: #1a1a1a;
-            border: none;
+        .scan-bar {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--accent);
+            box-shadow: 0 0 10px #fff;
+            animation: scanAnim 2s infinite linear;
         }
 
-        .leaflet-container {
-            font-family: inherit;
+        @keyframes scanAnim {
+            0% {
+                top: 0;
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                top: 100%;
+                opacity: 0;
+            }
         }
 
-        /* Info Panel Bottom */
-        .info-panel {
-            background: var(--dark-surface);
-            border-top: 1px solid var(--dark-border);
-            padding: 1.5rem 2rem;
-            max-height: 280px;
+        .sys-status {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--text-main);
+            background: var(--border);
+            padding: 6px 16px;
+            border-radius: 4px;
+        }
+
+        .results-view {
+            display: none;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            width: 100%;
+            height: calc(100vh - 140px);
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .agent-panel,
+        .map-panel {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--surface-1);
+        }
+
+        .panel-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--system-green);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--system-green);
+        }
+
+        .terminal {
+            flex-grow: 1;
+            padding: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            line-height: 1.6;
+            color: var(--text-muted);
             overflow-y: auto;
+            background: #000;
+        }
+
+        .term-line {
+            margin-bottom: 6px;
+            opacity: 0;
+            animation: showLine 0.1s forwards;
+        }
+
+        @keyframes showLine {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .term-key {
+            color: #818cf8;
+        }
+
+        .term-val {
+            color: var(--text-main);
+        }
+
+        .term-sys {
+            color: var(--system-green);
+            font-weight: 500;
+        }
+
+        .location-info {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .location-title {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .location-meta {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        #map {
+            flex-grow: 1;
+            width: 100%;
+            background: #000;
+            z-index: 1;
+        }
+
+        .action-bars {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 12px;
+            z-index: 100;
             display: none;
         }
 
-        .info-panel.active {
-            display: block;
-            animation: slideUp 0.4s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .info-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .info-header h2 {
-            font-size: 1.3rem;
-            color: var(--light-text);
-        }
-
-        .confidence-badge {
-            background: var(--success);
-            color: white;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-
-        .confidence-badge.low {
-            background: #f59e0b;
-        }
-
-        .confidence-badge.very-low {
-            background: var(--danger);
-        }
-
-        .coordinates {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            border: 1px solid var(--dark-border);
-        }
-
-        .coord-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .coord-label {
-            font-size: 0.75rem;
-            color: var(--muted-text);
-            text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 0.3rem;
-        }
-
-        .coord-value {
-            font-family: 'Courier New', monospace;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .analysis-section h3 {
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            color: var(--muted-text);
-            font-weight: 600;
-            margin-top: 1rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .analysis-text {
-            font-size: 0.9rem;
-            line-height: 1.5;
-            color: var(--light-text);
-        }
-
-        /* Top Bar Controls */
-        .top-bar {
-            background: var(--dark-surface);
-            border-bottom: 1px solid var(--dark-border);
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.4s ease;
-            height: 0;
-        }
-
-        .top-bar.active {
-            opacity: 1;
-            pointer-events: auto;
-            height: auto;
-        }
-
-        .bar-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--light-text);
-        }
-
-        .bar-actions {
-            display: flex;
-            gap: 1rem;
-        }
-
         .btn-action {
-            background: var(--dark-border);
-            border: 1px solid var(--dark-border);
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            color: var(--text-main);
             padding: 8px 16px;
             border-radius: 6px;
-            cursor: pointer;
             font-size: 0.9rem;
-            transition: all 0.3s;
-            color: var(--light-text);
+            cursor: pointer;
+            font-family: var(--font-ui);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s, border-color 0.2s;
         }
 
         .btn-action:hover {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
+            background: var(--surface-2);
+            border-color: var(--text-muted);
         }
 
-        .btn-action.secondary {
-            background: transparent;
+        .btn-action.primary {
+            background: var(--text-main);
+            color: var(--bg-base);
+            border-color: var(--text-main);
+            font-weight: 500;
         }
 
-        /* Status Messages */
-        .status-message {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            padding: 1rem 1.5rem;
-            background: var(--success);
-            color: white;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            animation: slideIn 0.3s ease;
-            z-index: 1000;
+        .btn-action.primary:hover {
+            opacity: 0.9;
         }
 
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+        .leaflet-bar {
+            border: 1px solid var(--border) !important;
         }
 
-        .status-message.error {
-            background: var(--danger);
+        .leaflet-bar a {
+            background: var(--surface-1) !important;
+            color: #fff !important;
+            border-bottom: 1px solid var(--border) !important;
         }
 
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .upload-panel {
-                width: 50%;
-            }
+        .leaflet-bar a:hover {
+            background: var(--surface-2) !important;
+        }
 
-            .coordinates {
+        .leaflet-popup-content-wrapper {
+            background: var(--surface-1);
+            color: #fff;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        .leaflet-popup-tip {
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+        }
+
+        @media (max-width: 900px) {
+            .results-view {
                 grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 768px) {
-            #app {
-                flex-direction: column;
-            }
-
-            .upload-panel {
-                width: 100%;
                 height: auto;
-                min-height: 300px;
-                border-right: none;
-                border-bottom: 1px solid var(--dark-border);
             }
 
-            .upload-panel.hidden {
-                display: none;
+            .agent-panel {
+                height: 300px;
             }
 
-            .branding {
-                margin-bottom: 1.5rem;
+            .map-panel {
+                height: 500px;
             }
 
-            .branding h1 {
-                font-size: 1.5rem;
-            }
-
-            .drop-zone {
-                height: 250px;
-            }
-
-            .results-panel {
-                min-height: 400px;
+            .action-bars {
+                position: static;
+                margin-top: 1rem;
+                display: flex;
+                justify-content: center;
             }
         }
     </style>
 </head>
 
 <body>
-    <div id="app">
-        <!-- Upload Panel -->
-        <div class="upload-panel" id="uploadPanel">
-            <div class="branding">
-                <div class="logo-icon">🗺️</div>
-                <h1>GeoFinder</h1>
-                <p>Descubre dónde está cualquier foto</p>
-            </div>
-
-            <div class="drop-zone" id="dropZone">
-                <div class="drop-icon">📸</div>
-                <div class="drop-text">
-                    <h3>Sube una foto</h3>
-                    <p>Arrastra o haz click para seleccionar</p>
-                </div>
-                <button class="btn-select">Elegir archivo</button>
-            </div>
-
-            <div class="loading-state" id="loadingState">
-                <div class="spinner"></div>
-                <p class="loading-text">Analizando foto...</p>
-                <p class="loading-note">Esto puede tardar 10-15 segundos</p>
-            </div>
-
-            <input type="file" id="fileInput" accept="image/*">
+    <nav>
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="4"></circle>
+                <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+            </svg>
+            GeoSpy
+            <span class="pro-badge">PRO</span>
         </div>
+        <div style="color: var(--text-muted); font-size: 0.9rem;">Descubre la ubicación de cualquier imagen</div>
+    </nav>
 
-        <!-- Results Panel -->
-        <div class="results-panel" id="resultsPanel">
-            <div class="top-bar" id="topBar">
-                <div class="bar-title">Ubicación detectada</div>
-                <div class="bar-actions">
-                    <button class="btn-action" onclick="downloadResult()">📥 Descargar</button>
-                    <button class="btn-action secondary" onclick="resetApp()">🔄 Otra foto</button>
-                </div>
+    <main>
+        <div class="workspace" id="initialView">
+            <div class="title-group">
+                <h1>Localiza Fotos con IA</h1>
+                <p>Sube una imagen y el motor la ubicará globalmente con análisis inteligente.</p>
             </div>
 
-            <div id="map"></div>
-
-            <div class="info-panel" id="infoPanel">
-                <div class="info-header">
-                    <h2 id="locationName">Cargando...</h2>
-                    <div class="confidence-badge" id="confidenceBadge">--</div>
+            <div class="upload-area" id="dropZone">
+                <input type="file" id="fileInput" hidden accept="image/*">
+                <div id="uploadUi" style="display:flex; flex-direction:column; align-items:center;">
+                    <div class="upload-icon">
+                        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                    </div>
+                    <button class="btn-upload">Seleccionar imagen</button>
+                    <div class="upload-hints">o arrastra y suelta aquí</div>
                 </div>
 
-                <div class="coordinates">
-                    <div class="coord-item">
-                        <div class="coord-label">Latitud</div>
-                        <div class="coord-value" id="latValue">--</div>
-                    </div>
-                    <div class="coord-item">
-                        <div class="coord-label">Longitud</div>
-                        <div class="coord-value" id="lonValue">--</div>
-                    </div>
-                </div>
+                <img id="preview" class="preview-img">
 
-                <div class="analysis-section">
-                    <h3>Análisis Inteligente</h3>
-                    <p class="analysis-text" id="analysisText">Procesando...</p>
+                <div class="scanner-overlay" id="scannerOverlay">
+                    <div class="scan-bar"></div>
+                    <div class="sys-status" id="sysStatus">AGENT INITIALIZED</div>
                 </div>
             </div>
         </div>
+
+        <div class="results-view" id="resultsView">
+            <div class="agent-panel">
+                <div class="panel-header">
+                    <div class="pulse-dot"></div>
+                    Agent Logs
+                </div>
+                <div class="terminal" id="terminal"></div>
+            </div>
+
+            <div class="map-panel">
+                <div class="location-info">
+                    <div class="location-title" id="locTitle">Procesando...</div>
+                    <div class="location-meta" id="locMeta">---</div>
+                </div>
+                <div id="map"></div>
+            </div>
+        </div>
+    </main>
+
+    <div class="action-bars" id="actionBars">
+        <button class="btn-action" onclick="location.reload()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+            </svg>
+            Nueva búsqueda
+        </button>
+        <button class="btn-action primary" id="btnStreetView">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            Street View
+        </button>
     </div>
 
     <script>
-        let map;
-        let currentMarker;
-
-        // DOM Elements
-        const uploadPanel = document.getElementById('uploadPanel');
-        const resultsPanel = document.getElementById('resultsPanel');
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
-        const loadingState = document.getElementById('loadingState');
-        const topBar = document.getElementById('topBar');
-        const infoPanel = document.getElementById('infoPanel');
+        const preview = document.getElementById('preview');
+        const scannerOverlay = document.getElementById('scannerOverlay');
+        const sysStatus = document.getElementById('sysStatus');
+        const initialView = document.getElementById('initialView');
+        const resultsView = document.getElementById('resultsView');
+        const terminal = document.getElementById('terminal');
+        const actionBars = document.getElementById('actionBars');
+        const btnStreetView = document.getElementById('btnStreetView');
+        const uploadUi = document.getElementById('uploadUi');
 
-        // Initialize map
-        function initMap() {
-            if (map) return;
-            map = L.map('map').setView([20, 0], 2);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors',
-                maxZoom: 19
-            }).addTo(map);
-        }
+        let map = null;
 
-        // Drag & Drop
+        dropZone.addEventListener('click', () => {
+            if (!scannerOverlay.classList.contains('active')) fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
-            dropZone.classList.add('drag-over');
+            dropZone.classList.add('dragover');
         });
 
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('drag-over');
-        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
 
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) handleFile(files[0]);
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
         });
 
-        // File Selection
-        dropZone.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) handleFile(e.target.files[0]);
-        });
-
-        // Handle File Upload
         function handleFile(file) {
-            if (!file.type.startsWith('image/')) {
-                showStatus('Por favor selecciona una imagen válida', true);
-                return;
-            }
+            uploadUi.style.display = 'none';
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
 
-            // Show loading
-            dropZone.style.display = 'none';
-            loadingState.classList.add('active');
+            startScanner();
+            invokeAgent(file);
+        }
 
-            // Prepare form data
+        const phrases = [
+            'EXTRACTING FEATURES...',
+            'QUERYING NEURAL NET...',
+            'ANALYZING CLIMATE...',
+            'MATCHING ARCHITECTURE...',
+            'TRIANGULATING COORDINATES...',
+            'SNAPPING TO GRID...'
+        ];
+
+        let scanInterval;
+        function startScanner() {
+            scannerOverlay.classList.add('active');
+            let i = 0;
+            scanInterval = setInterval(() => {
+                i = (i + 1) % phrases.length;
+                sysStatus.innerText = phrases[i];
+            }, 1000);
+        }
+
+        async function invokeAgent(file) {
             const formData = new FormData();
             formData.append('image', file);
 
-            // Send to backend
-            fetch('/analyze', {
-                method: 'POST',
-                body: formData
-            })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        showResults(data);
-                    } else {
-                        showStatus('Error: ' + data.message, true);
-                        resetApp();
+            try {
+                const response = await fetch('/analyze', { method: 'POST', body: formData });
+                const data = await response.json();
+
+                clearInterval(scanInterval);
+                scannerOverlay.classList.remove('active');
+
+                if (data.status === 'success') {
+                    transitionToResults(data);
+                } else {
+                    alert('Error de análisis: ' + (data.message || 'Desconocido'));
+                    location.reload();
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error de conexión.');
+                location.reload();
+            }
+        }
+
+        function transitionToResults(data) {
+            initialView.style.display = 'none';
+            resultsView.style.display = 'grid';
+            actionBars.style.display = 'flex';
+
+            btnStreetView.onclick = () => {
+                window.open(`https://www.google.com/maps?q&layer=c&cbll=${data.lat},${data.lon}`, '_blank');
+            };
+
+            document.getElementById('locTitle').innerText = data.location;
+            if (data.location_es && data.location_es !== data.location) {
+                document.getElementById('locTitle').innerHTML += `<div style="font-size:0.9rem; color:var(--text-muted); margin-top:4px;">${data.location_es}</div>`;
+            }
+
+            document.getElementById('locMeta').innerHTML = `
+                <span>LAT: ${parseFloat(data.lat).toFixed(5)}</span>
+                <span>LON: ${parseFloat(data.lon).toFixed(5)}</span>
+                <span style="color:var(--system-green)">CONF: ${data.confidence}</span>
+            `;
+
+            initMap(data.lat, data.lon);
+            writeTerminal(data);
+        }
+
+        async function writeTerminal(data) {
+            terminal.innerHTML = '';
+            const wait = (ms) => new Promise(res => setTimeout(res, ms));
+            const ctx = data.reasoning;
+
+            const pushLine = (html) => {
+                const div = document.createElement('div');
+                div.className = 'term-line';
+                div.innerHTML = html;
+                terminal.appendChild(div);
+                terminal.scrollTop = terminal.scrollHeight;
+            };
+
+            pushLine('> agent.start_analysis()');
+            await wait(400);
+
+            if (!ctx || !ctx.type) {
+                pushLine('> <span class="term-sys">[WARN] Visual context extraction bypassed.</span>');
+                pushLine('> <span class="term-sys">[OK] GeoCLIP zero-shot inference applied.</span>');
+            } else {
+                pushLine(`> <span class="term-key">ENVIRONMENT</span>: <span class="term-val">${ctx.type}</span>`);
+                await wait(300);
+                pushLine(`> <span class="term-key">SUB_TYPE</span>: <span class="term-val">${ctx.sub_type}</span>`);
+                await wait(300);
+                pushLine(`> <span class="term-key">TIME</span>: <span class="term-val">${ctx.time_of_day}</span>`);
+                await wait(300);
+                pushLine(`> <span class="term-key">CLIMATE</span>: <span class="term-val">${ctx.climate}</span>`);
+
+                if (ctx.features) {
+                    await wait(400);
+                    pushLine('> agent.extract_features()');
+                    for (const [k, v] of Object.entries(ctx.features)) {
+                        await wait(200);
+                        pushLine(`  - <span class="term-key">${k}</span>: <span class="term-val">${v}</span>`);
                     }
-                })
-                .catch(err => {
-                    showStatus('Error de conexión', true);
-                    console.error(err);
-                    resetApp();
-                });
+                }
+            }
+
+            await wait(500);
+            pushLine('> agent.triangulate()');
+            await wait(800);
+
+            if (ctx && ctx.osm_tags && ctx.osm_tags.length > 0) {
+                pushLine('> <span class="term-sys">[SATELLITE]</span> Querying Global OSM DB for constraints...');
+                await wait(600);
+                for (let i = 0; i < Math.min(2, ctx.osm_tags.length); i++) {
+                    pushLine(`  - [BOUNDING BOX MATCH]: <span style="color:#facc15">${ctx.osm_tags[i]}</span>`);
+                    await wait(600);
+                }
+            }
+
+            pushLine('> agent.snapToMapGrid()');
+            await wait(400);
+            pushLine('> <span class="term-sys">[SUCCESS] Coordinate locked.</span>');
         }
 
-        // Display Results
-        function showResults(data) {
-            // Hide upload, show results
-            uploadPanel.classList.add('hidden');
-            resultsPanel.classList.add('active');
-            topBar.classList.add('active');
-            infoPanel.classList.add('active');
+        function initMap(lat, lon) {
+            const tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 
-            initMap();
+            map = L.map('map', { zoomControl: false }).setView([lat, lon], 17);
+            L.tileLayer(tileUrl, { maxZoom: 19 }).addTo(map);
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-            // Center map on result
-            const lat = parseFloat(data.lat);
-            const lon = parseFloat(data.lon);
-            map.setView([lat, lon], 14);
+            const circleIcon = L.divIcon({
+                className: '',
+                html: `<div style="width:14px; height:14px; background:#fff; border-radius:50%; box-shadow: 0 0 0 4px rgba(255,255,255,0.2);"></div>`,
+                iconSize: [14, 14],
+                iconAnchor: [7, 7]
+            });
 
-            // Remove old marker
-            if (currentMarker) map.removeLayer(currentMarker);
-
-            // Add new marker with custom icon
-            const marker = L.marker([lat, lon], {
-                icon: L.icon({
-                    iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCAzMiA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxNiIgZmlsbD0iIzAwN2JmZiIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjgiIGZpbGw9IndoaXRlIi8+PHBhdGggZD0iTTE2IDMyQzI0LjgyODQgMzIgMzIgMzguNjI3NCAzMiA0OEgwQzAgMzguNjI3NCA3LjE3MTYgMzIgMTYgMzJaIiBmaWxsPSIjMDA3YmZmIi8+PC9zdmc+',
-                    iconSize: [32, 48],
-                    iconAnchor: [16, 48],
-                    popupAnchor: [0, -48]
-                })
-            })
-                .addTo(map)
-                .bindPopup(`<b>${data.location}</b>`, { closeButton: false })
-                .openPopup();
-
-            currentMarker = marker;
-
-            // Update info panel
-            document.getElementById('locationName').textContent = data.location_es || data.location;
-            document.getElementById('latValue').textContent = lat.toFixed(6);
-            document.getElementById('lonValue').textContent = lon.toFixed(6);
-
-            const confidence = parseFloat(data.confidence);
-            const badge = document.getElementById('confidenceBadge');
-            badge.textContent = data.confidence;
-            badge.className = 'confidence-badge';
-            if (confidence >= 80) badge.classList.remove('low', 'very-low');
-            else if (confidence >= 50) badge.classList.add('low');
-            else badge.classList.add('very-low');
-
-            document.getElementById('analysisText').textContent = data.reasoning || 'Análisis de IA completado correctamente';
-
-            loadingState.classList.remove('active');
-            showStatus('✓ Ubicación detectada correctamente');
+            L.marker([lat, lon], { icon: circleIcon }).addTo(map);
+            setTimeout(() => map.invalidateSize(), 300);
         }
-
-        // Reset App
-        function resetApp() {
-            uploadPanel.classList.remove('hidden');
-            resultsPanel.classList.remove('active');
-            topBar.classList.remove('active');
-            infoPanel.classList.remove('active');
-            dropZone.style.display = 'flex';
-            loadingState.classList.remove('active');
-            fileInput.value = '';
-            dropZone.classList.remove('drag-over');
-        }
-
-        // Download Result
-        function downloadResult() {
-            const lat = document.getElementById('latValue').textContent;
-            const lon = document.getElementById('lonValue').textContent;
-            const location = document.getElementById('locationName').textContent;
-
-            const text = `📍 RESULTADO GEOFINDER\n\nUbicación: ${location}\nLatitud: ${lat}\nLongitud: ${lon}\n\nMaps: https://maps.google.com/?q=${lat},${lon}`;
-            const blob = new Blob([text], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'geofinder-resultado.txt';
-            a.click();
-        }
-
-        // Status Messages
-        function showStatus(msg, isError = false) {
-            const status = document.createElement('div');
-            status.className = 'status-message' + (isError ? ' error' : '');
-            status.textContent = msg;
-            document.body.appendChild(status);
-            setTimeout(() => status.remove(), 3000);
-        }
-
-        // Show initial message  
-        window.addEventListener('load', () => {
-            showStatus('🌍 Bienvenido a GeoFinder Pro');
-        });
     </script>
 </body>
 
