@@ -4,7 +4,22 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/) y este proyecto sigue [Semantic Versioning](https://semver.org/).
 
-## [1.2.1] - 2026-04-22 (Bug Fixes + Dark Theme)
+## [1.2.2] - 2026-04-23 (Bug Fixes + Dark Theme Restoration)
+
+### Fixed - 🔧 Correcciones Críticas
+- **Port Conflict**: Resolved "Port 5000 already in use" error by terminating conflicting processes
+- **Application Startup**: System now starts successfully without port conflicts
+- **UI Theme**: Completely restored professional dark color scheme
+
+### Changed - 🎨 Diseño Oscuro Profesional
+- **Dark Theme**: Restored complete dark color palette (black backgrounds, light text)
+- **Professional Appearance**: Clean, modern interface with improved contrast
+- **User Experience**: Better visual hierarchy and readability in dark mode
+
+### Improved
+- **System Reliability**: Application starts consistently on localhost:5000
+- **Visual Design**: Enhanced dark theme with proper color variables and gradients
+- **Code Quality**: Clean CSS structure with semantic color naming
 
 ### Fixed - 🔧 Correcciones Críticas
 - **AttributeError Crítico**: Resuelto error de inicialización en GeoEngineReal causado por métodos fuera del scope de clase
