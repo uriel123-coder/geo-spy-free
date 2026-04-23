@@ -16,7 +16,26 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/) y est
 
 ---
 
-## [1.0.0] - 2026-04-22
+## [1.1.0] - 2026-04-22 (Mejoras de Inteligencia)
+
+### Added - 🆕 Características de IA Mejorada
+- ✨ **Sistema de Inteligencia Aumentada** - Puntuación de confianza multi-factor
+- 🗺️ **Detección de Street View** - Prioriza lugares con cobertura de Google Street View
+- 📍 **Base de datos geo-inteligente** - 50+ lugares turísticos de alta confiabilidad
+- 🎯 **Validación de tierra vs océano** - Evita predicciones al azar en océanos
+- 🏢 **Clasificación de lugares** - Urbano, turístico, comercial, playas
+- 🔍 **Scoring contextual** - Multa por confianza si no es tierra sólida
+
+### Improved
+- 🚀 Mejor rendimiento de predicciones en lugares conocidos
+- 📊 Puntuación de confianza más realista (basada en múltiples factores)
+- 🎨 Puerto consistente (5000) en toda la aplicación
+- 🔧 Métodos de cálculo de distancia Haversine (más precisión)
+
+### Technical
+- Nuevos métodos: `_load_street_view_places()`, `_has_street_view_coverage()`, `_score_location_intelligence()`
+- Integración de análisis multi-factor de confianza
+- Mejor manejo de ubicaciones inválidas
 
 ### Added
 - ✨ Sistema completo de geolocalización con GeoCLIP

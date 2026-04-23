@@ -7,12 +7,13 @@ from io import BytesIO
 import re
 from scipy.spatial.distance import cdist
 import cv2
-import cv2
 import faiss
 import os
 import pickle
 from vlm_agent import VLMAgent
 from gis_validator import GISValidator
+import json
+from datetime import datetime
 
 class GeoEngineReal:
     """
@@ -47,6 +48,10 @@ class GeoEngineReal:
         # Inicializar el Validador GIS
         self.gis = GISValidator()
         print(f"[IA] ✓ Sistema de validación GIS (Francotirador) activado.")
+        
+        # 🆕 LUGARES CON CONFIANZA ALTA (Street View disponible)
+        self.high_confidence_places = self._load_street_view_places()
+        print(f"[IA] ✓ Base de datos de Street View cargada ({len(self.high_confidence_places)} lugares).")
         
         # Eliminar Memoria Visual a petición del usuario (sin datos pregrabados)
         # self.memory = VisualMemory(self.model)
@@ -112,7 +117,9 @@ class GeoEngineReal:
                     best_lat, best_lon = self._geocode_text(query_fallback_2)
                 
                 if best_lat is not None:
-                    confidence_score = 99.9
+                    # 🆕 INTELIGENCIA AUMENTADA: Calcular confianza de forma inteligente
+                    confidence_score = self._score_location_intelligence(best_lat, best_lon, visual_context)
+                    print(f"[IA] 🧠 Score de confianza inteligente: {confidence_score:.1f}%")
                 
             # 2. Fallback a GeoCLIP si Gemini no supo el país exacto
             if best_lat is None or best_lon is None:
@@ -670,6 +677,112 @@ class VisualMemory:
         except Exception as e:
             print(f"[DEBUG] Error en búsqueda de memoria: {e}")
             return None
+
+    # 🆕 ============ MÉTODOS DE INTELIGENCIA MEJORADA ============
+    
+    def _load_street_view_places(self):
+        """Carga lugares que TIENEN Street View de Google (lugares fotografiados y confiables)."""
+        places = [
+            # Ciudades Principales (Alta confiabilidad - mucho Street View)
+            {"name": "New York, USA", "lat": 40.7128, "lon": -74.0060, "score": 100, "type": "urban"},
+            {"name": "London, United Kingdom", "lat": 51.5074, "lon": -0.1278, "score": 100, "type": "urban"},
+            {"name": "Tokyo, Japan", "lat": 35.6762, "lon": 139.6503, "score": 100, "type": "urban"},
+            {"name": "Paris, France", "lat": 48.8566, "lon": 2.3522, "score": 100, "type": "urban"},
+            {"name": "Berlin, Germany", "lat": 52.5200, "lon": 13.4050, "score": 100, "type": "urban"},
+            {"name": "Toronto, Canada", "lat": 43.6532, "lon": -79.3832, "score": 100, "type": "urban"},
+            {"name": "Sydney, Australia", "lat": -33.8688, "lon": 151.2093, "score": 100, "type": "urban"},
+            {"name": "Singapore", "lat": 1.3521, "lon": 103.8198, "score": 100, "type": "urban"},
+            {"name": "Dubai, UAE", "lat": 25.2048, "lon": 55.2708, "score": 100, "type": "urban"},
+            {"name": "Bangkok, Thailand", "lat": 13.7563, "lon": 100.5018, "score": 100, "type": "urban"},
+            {"name": "Lima, Peru", "lat": -12.0464, "lon": -77.0428, "score": 95, "type": "urban"},
+            {"name": "Rio de Janeiro, Brazil", "lat": -22.9068, "lon": -43.1729, "score": 98, "type": "urban"},
+            {"name": "Mexico City, Mexico", "lat": 19.4326, "lon": -99.1332, "score": 98, "type": "urban"},
+            
+            # Monumentos Famosos (Muy Alta confiabilidad)
+            {"name": "Eiffel Tower, Paris", "lat": 48.8584, "lon": 2.2945, "score": 99, "type": "landmark"},
+            {"name": "Statue of Liberty, New York", "lat": 40.6892, "lon": -74.0445, "score": 99, "type": "landmark"},
+            {"name": "Big Ben, London", "lat": 51.4975, "lon": -0.1246, "score": 99, "type": "landmark"},
+            {"name": "Colosseum, Rome", "lat": 41.8902, "lon": 12.4922, "score": 99, "type": "landmark"},
+            {"name": "Golden Gate Bridge, San Francisco", "lat": 37.8199, "lon": -122.4783, "score": 99, "type": "landmark"},
+            
+            # Playas populares
+            {"name": "Miami Beach, USA", "lat": 25.7907, "lon": -80.1300, "score": 95, "type": "beach"},
+            {"name": "Bondi Beach, Sydney", "lat": -33.8891, "lon": 151.2768, "score": 95, "type": "beach"},
+            {"name": "Waikiki Beach, Hawaii", "lat": 21.2810, "lon": -157.8283, "score": 95, "type": "beach"},
+            
+            # Áreas comerciales
+            {"name": "Times Square, New York", "lat": 40.7580, "lon": -73.9855, "score": 98, "type": "commercial"},
+            {"name": "Shibuya, Tokyo", "lat": 35.6595, "lon": 139.7004, "score": 98, "type": "commercial"},
+        ]
+        return places
+    
+    def _has_street_view_coverage(self, lat, lon):
+        """Verifica si hay Street View disponible en Google Maps (indirectamente)."""
+        # Esto es una heurística - lugares turísticos principales generalmente tienen coverage
+        # En producción, usarías Google Street View Static API
+        
+        # Si está cerca de algún lugar conocido con cobertura
+        for place in self.high_confidence_places:
+            distance = self._calculate_distance(lat, lon, place["lat"], place["lon"])
+            if distance < 50:  # Menos de 50km
+                return True, place["score"]
+        
+        # Por defecto, asumimos que lugares urbanos tienen cobertura
+        return False, 50
+    
+    def _calculate_distance(self, lat1, lon1, lat2, lon2):
+        """Calcula distancia en km entre dos puntos GPS (Fórmula de Haversine)."""
+        from math import radians, cos, sin, asin, sqrt
+        
+        lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+        c = 2 * asin(sqrt(a))
+        r = 6371  # Radio de la tierra en km
+        return c * r
+    
+    def _score_location_intelligence(self, lat, lon, visual_context):
+        """Da un score de confianza basado en múltiples factores inteligentes."""
+        base_score = 50
+        
+        # ✅ Factor 1: ¿Hay Street View disponible?
+        has_sv, sv_score = self._has_street_view_coverage(lat, lon)
+        if has_sv:
+            base_score += 20
+        
+        # ✅ Factor 2: ¿Coincide con lo que la IA visual detectó?
+        if visual_context.get("deduced_country"):
+            base_score += 10
+        if visual_context.get("deduced_city"):
+            base_score += 15
+        
+        # ✅ Factor 3: ¿Es un lugar turístico/conocido?
+        for place in self.high_confidence_places:
+            dist = self._calculate_distance(lat, lon, place["lat"], place["lon"])
+            if dist < 5:  # Menos de 5km
+                base_score += place["score"] * 0.1
+                break
+        
+        # ✅ Factor 4: Validar que NO sea coordenadas al azar en el océano
+        if not self._is_valid_land_location(lat, lon):
+            base_score -= 30
+        
+        return min(base_score, 100)
+    
+    def _is_valid_land_location(self, lat, lon):
+        """Verifica que sea una ubicación en tierra (muy básico)."""
+        # Coordenadas extremas (océano):
+        if lat < -90 or lat > 90 or lon < -180 or lon > 180:
+            return False
+        
+        # Muy pocas ciudades en antártida/regiones polares extremas
+        if lat < -60 or lat > 75:
+            if abs(lon) not in [x for x in range(-180, 180)]:  # Solo algunos lugares
+                return False
+        
+        # Generalmente válido si llegó aquí
+        return True
 
     def add_image(self, image_path, lat, lon, location_name):
         """Añade una imagen a la memoria (para futuro aprendizaje)."""
