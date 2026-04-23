@@ -60,7 +60,7 @@ def status():
 
 def open_browser():
     """Abre el navegador automáticamente."""
-    webbrowser.open('http://127.0.0.1:5000')
+    webbrowser.open('http://127.0.0.1:8080')
 
 if __name__ == '__main__':
     # Abrir navegador después de 1 segundo
@@ -68,8 +68,8 @@ if __name__ == '__main__':
     print("\n" + "="*50)
     print("🌍 SISTEMA GEO-FINDER INICIADO")
     print("="*50)
-    print("📍 Abre tu navegador en: http://127.0.0.1:5000")
+    print("📍 Abre tu navegador en: http://127.0.0.1:8080")
     print("🔍 Arrastra una foto para encontrar su ubicación")
     print("="*50 + "\n")
-    app.run(host='127.0.0.1', port=5000, debug=False)
+    app.run(host='127.0.0.1', port=8080, debug=False)
 
