@@ -4,6 +4,22 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/) y este proyecto sigue [Semantic Versioning](https://semver.org/).
 
+## [1.2.1] - 2026-04-22 (Bug Fixes + Dark Theme)
+
+### Fixed - 🔧 Correcciones Críticas
+- **AttributeError Crítico**: Resuelto error de inicialización en GeoEngineReal causado por métodos fuera del scope de clase
+- **Scope de Métodos**: Corregido _load_street_view_places() y métodos de inteligencia para estar dentro de GeoEngineReal
+- **Estabilidad del Sistema**: Aplicación ahora inicia sin errores y todas las funciones de geolocalización funcionan
+
+### Changed - 🎨 Tema Oscuro Restaurado
+- **Diseño Oscuro Profesional**: Restaurado tema oscuro mientras se mantiene el diseño minimalista limpio
+- **Mejor Contraste**: Tema oscuro proporciona mejor legibilidad y apariencia profesional
+- **Preferencias de Usuario**: Implementado tema oscuro según solicitud del usuario
+
+### Improved
+- **Fiabilidad del Sistema**: Eliminados errores de inicialización que bloqueaban el funcionamiento
+- **Experiencia de Usuario**: Tema oscuro más cómodo para uso prolongado
+
 ## [Unreleased]
 
 ### Planeado
