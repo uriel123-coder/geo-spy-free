@@ -7,12 +7,42 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/) y est
 ## [Unreleased]
 
 ### Planeado
-- Soporte para análisis en batch (múltiples imágenes)
-- Dashboard de estadísticas
-- Integración con Google Maps
-- Modelo fino personalizado
-- Aplicación móvil
-- Caché distribuido
+- Análisis en batch (múltiples imágenes)
+- Historial de búsquedas
+- Integración con Google Maps API
+- Comparación de imágenes
+- Exportar a diferentes formatos
+
+---
+
+## [1.2.0] - 2026-04-22 (Ultra Pro UI)
+
+### Added - 🎨 Interfaz Completamente Rediseñada
+- ✨ **Diseño Ultra Minimalista** - Sin documentación, solo resultados
+- 🎯 **Layout Split Professional** - Upload izquierda, Mapa derecha (como GeoSpy Real)
+- 📱 **Responsive Design** - Perfecto en móvil, tablet y desktop
+- 🎭 **Animaciones Fluidas** - Transiciones suaves y profesionales
+- 🗺️ **Marcadores Personalizados** - Ícono azul profesional en el mapa
+
+### Added - 🧠 Análisis Inteligente Avanzado
+- 🔍 **Detección de Densidad Urbana** - Diferencia urbano/suburban/rural
+- 🏛️ **Identificación Arquitectónica** - Estilos modern vs traditional
+- 🌳 **Análisis Ambiental** - Vegetación, agua, clima
+- 📊 **Análisis Profundo Multi-Factor** - Combina todos los indicadores
+- 💾 **Descarga de Resultados** - Export a .txt con coordinadas exactas
+
+### Improved
+- 🎨 Interfaz 100% profesional (blanco + azul)
+- 🚀 Loading states mejorados con spinner
+- 📍 Info panel con análisis detallado
+- 🔔 Status messages dinámicas
+- ♿ Accessibility mejorada
+
+### Removed
+- ❌ Panel de API (documentación innecesaria)
+- ❌ Logs técnicos de terminal en UI
+- ❌ Clutter de configuración
+- ❌ Diseño oscuro complicado
 
 ---
 
