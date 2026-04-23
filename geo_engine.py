@@ -53,6 +53,10 @@ class GeoEngineReal:
         self.high_confidence_places = self._load_street_view_places()
         print(f"[IA] ✓ Base de datos de Street View cargada ({len(self.high_confidence_places)} lugares).")
         
+        # 🆕 Sistema de análisis profundo
+        self.analysis_cache = {}
+        print(f"[IA] ✓ Sistema de análisis profundo activado.")
+        
         # Eliminar Memoria Visual a petición del usuario (sin datos pregrabados)
         # self.memory = VisualMemory(self.model)
         
@@ -787,6 +791,120 @@ class VisualMemory:
     def add_image(self, image_path, lat, lon, location_name):
         """Añade una imagen a la memoria (para futuro aprendizaje)."""
         pass  # Implementar cuando tengamos interfaz de entrenamiento
+    
+    # 🆕 ============ ANÁLISIS INTELIGENTE AVANZADO ============
+    
+    def _analyze_environmental_features(self, image_path):
+        """Analiza características del entorno (arquitectura, naturaleza, etc)."""
+        try:
+            from PIL import Image
+            import numpy as np
+            
+            img = Image.open(image_path)
+            img_array = np.array(img)
+            
+            # Análisis básico de características
+            features = {
+                "urban_density": self._detect_urban_density(img_array),
+                "architectural_style": self._detect_architecture(img_array),
+                "vegetation": self._detect_vegetation(img_array),
+                "water_bodies": self._detect_water(img_array),
+                "climate_indicators": self._detect_climate(img_array)
+            }
+            
+            return features
+        except:
+            return {}
+    
+    def _detect_urban_density(self, img_array):
+        """Detecta si es zona urbana o rural."""
+        # Heurística: contar píxeles grises (edificios típicamente)
+        gray_pixels = np.sum((img_array[:,:,0] > 100) & (img_array[:,:,0] < 180))
+        total_pixels = img_array.shape[0] * img_array.shape[1]
+        density = gray_pixels / total_pixels
+        
+        if density > 0.4:
+            return "urban"
+        elif density > 0.2:
+            return "suburban"
+        else:
+            return "rural"
+    
+    def _detect_architecture(self, img_array):
+        """Detecta estilo arquitectónico básico."""
+        # Análisis de colores dominantes para estimar arquitectura
+        colors = self._get_dominant_colors(img_array)
+        
+        if colors and colors[0][0] > 150:  # Tonos claros = arquitectura moderna
+            return "modern"
+        else:
+            return "traditional"
+    
+    def _detect_vegetation(self, img_array):
+        """Detecta presencia de vegetación."""
+        green_channel = img_array[:,:,1]
+        vegetation_pixels = np.sum(green_channel > 120)
+        total_pixels = img_array.shape[0] * img_array.shape[1]
+        
+        if vegetation_pixels / total_pixels > 0.3:
+            return "abundant"
+        elif vegetation_pixels / total_pixels > 0.1:
+            return "moderate"
+        else:
+            return "minimal"
+    
+    def _detect_water(self, img_array):
+        """Detecta cuerpos de agua."""
+        # Tonos azules/cian indican agua
+        blue_channel = img_array[:,:,2]
+        water_pixels = np.sum(blue_channel > 150)
+        total_pixels = img_array.shape[0] * img_array.shape[1]
+        
+        return "present" if water_pixels / total_pixels > 0.15 else "absent"
+    
+    def _detect_climate(self, img_array):
+        """Detecta indicadores de clima."""
+        # Brillo general de la imagen = iluminación solar
+        brightness = np.mean(img_array)
+        
+        if brightness > 150:
+            return "sunny_tropical"
+        elif brightness > 100:
+            return "temperate"
+        else:
+            return "cloudy_polar"
+    
+    def _get_dominant_colors(self, img_array):
+        """Obtiene colores dominantes de la imagen."""
+        img_array = img_array.reshape(-1, 3)
+        
+        try:
+            from sklearn.cluster import KMeans
+            kmeans = KMeans(n_clusters=3, n_init=10)
+            kmeans.fit(img_array)
+            return kmeans.cluster_centers_
+        except:
+            # Fallback sin sklearn
+            return [(100, 100, 100)]
+    
+    def _generate_deep_analysis(self, lat, lon, visual_context, features):
+        """Genera análisis profundo basado en múltiples factores."""
+        analysis = f"📊 ANÁLISIS PROFUNDO IA:\\n\\n"
+        
+        # Factor 1: Ubicación
+        analysis += f"📍 Ubicación: {visual_context.get('deduced_city', 'Desconocida')}\\n"
+        
+        # Factor 2: Ambiente
+        if features:
+            analysis += f"🏙️ Densidad: {features.get('urban_density', 'N/A')}\\n"
+            analysis += f"🌳 Vegetación: {features.get('vegetation', 'N/A')}\\n"
+            analysis += f"🌡️ Clima: {features.get('climate_indicators', 'N/A')}\\n"
+        
+        # Factor 3: Confianza
+        confidence = visual_context.get('confidence', 50)
+        analysis += f"\\n✓ Confianza IA: {confidence:.0f}%"
+        
+        return analysis
 
 # Instancia global
 _engine = None
