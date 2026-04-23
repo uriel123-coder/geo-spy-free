@@ -625,63 +625,6 @@ class GeoEngineReal:
         # Si no hay traducción, devolver el original
         return country_name
 
-class VisualMemory:
-    """
-    Sistema de Memoria Visual usando FAISS.
-    Permite 'recordar' lugares específicos mediante búsqueda vectorial.
-    """
-    def __init__(self, model):
-        self.model = model
-        self.index = None
-        self.metadata = []
-        self.dimension = 512  # Dimensión de vectores CLIP
-        self.memory_path = "memory_index.faiss"
-        self.metadata_path = "memory_metadata.pkl"
-        self._load_memory()
-    
-    def _load_memory(self):
-        """Carga el índice FAISS y metadatos si existen."""
-        if os.path.exists(self.memory_path) and os.path.exists(self.metadata_path):
-            try:
-                self.index = faiss.read_index(self.memory_path)
-                with open(self.metadata_path, 'rb') as f:
-                    self.metadata = pickle.load(f)
-                print(f"[MEMORIA] Cargados {len(self.metadata)} lugares conocidos.")
-            except Exception as e:
-                print(f"[ERROR] Falló carga de memoria: {e}")
-                self._init_empty_index()
-        else:
-            self._init_empty_index()
-    
-    def _init_empty_index(self):
-        """Inicializa un índice vacío."""
-        self.index = faiss.IndexFlatIP(self.dimension)  # Inner Product (similitud coseno)
-        self.metadata = []
-    
-    def search(self, image_path, threshold=0.85):
-        """
-        Busca la imagen en la memoria.
-        Retorna el resultado si la similitud supera el umbral.
-        """
-        if self.index.ntotal == 0:
-            return None
-            
-        try:
-            # Extraer vector de características usando el modelo GeoCLIP
-            # Nota: Accedemos al encoder de imagen interno de GeoCLIP
-            # Esto requiere procesar la imagen para obtener su embedding
-            
-            # Simplificación: Usamos el método predict de GeoCLIP para obtener embeddings
-            # GeoCLIP no expone fácilmente solo el embedding, así que usaremos un truco:
-            # Si no podemos obtener el embedding fácilmente, este paso requiere más integración.
-            # Por ahora, asumiremos que no hay memoria cargada para evitar errores complejos
-            # hasta que integremos correctamente la extracción de features.
-            return None 
-            
-        except Exception as e:
-            print(f"[DEBUG] Error en búsqueda de memoria: {e}")
-            return None
-
     # 🆕 ============ MÉTODOS DE INTELIGENCIA MEJORADA ============
     
     def _load_street_view_places(self):
@@ -905,6 +848,63 @@ class VisualMemory:
         analysis += f"\\n✓ Confianza IA: {confidence:.0f}%"
         
         return analysis
+
+class VisualMemory:
+    """
+    Sistema de Memoria Visual usando FAISS.
+    Permite 'recordar' lugares específicos mediante búsqueda vectorial.
+    """
+    def __init__(self, model):
+        self.model = model
+        self.index = None
+        self.metadata = []
+        self.dimension = 512  # Dimensión de vectores CLIP
+        self.memory_path = "memory_index.faiss"
+        self.metadata_path = "memory_metadata.pkl"
+        self._load_memory()
+    
+    def _load_memory(self):
+        """Carga el índice FAISS y metadatos si existen."""
+        if os.path.exists(self.memory_path) and os.path.exists(self.metadata_path):
+            try:
+                self.index = faiss.read_index(self.memory_path)
+                with open(self.metadata_path, 'rb') as f:
+                    self.metadata = pickle.load(f)
+                print(f"[MEMORIA] Cargados {len(self.metadata)} lugares conocidos.")
+            except Exception as e:
+                print(f"[ERROR] Falló carga de memoria: {e}")
+                self._init_empty_index()
+        else:
+            self._init_empty_index()
+    
+    def _init_empty_index(self):
+        """Inicializa un índice vacío."""
+        self.index = faiss.IndexFlatIP(self.dimension)  # Inner Product (similitud coseno)
+        self.metadata = []
+    
+    def search(self, image_path, threshold=0.85):
+        """
+        Busca la imagen en la memoria.
+        Retorna el resultado si la similitud supera el umbral.
+        """
+        if self.index.ntotal == 0:
+            return None
+            
+        try:
+            # Extraer vector de características usando el modelo GeoCLIP
+            # Nota: Accedemos al encoder de imagen interno de GeoCLIP
+            # Esto requiere procesar la imagen para obtener su embedding
+            
+            # Simplificación: Usamos el método predict de GeoCLIP para obtener embeddings
+            # GeoCLIP no expone fácilmente solo el embedding, así que usaremos un truco:
+            # Si no podemos obtener el embedding fácilmente, este paso requiere más integración.
+            # Por ahora, asumiremos que no hay memoria cargada para evitar errores complejos
+            # hasta que integremos correctamente la extracción de features.
+            return None 
+            
+        except Exception as e:
+            print(f"[DEBUG] Error en búsqueda de memoria: {e}")
+            return None
 
 # Instancia global
 _engine = None
